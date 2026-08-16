@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     AUDIO_RMS_THRESHOLD: float = 0.03
     OBJECT_CONF_THRESHOLD: float = 0.45
 
+    # Integrity Score Weights
+    VIOLATION_WEIGHT_LOW: int = 1
+    VIOLATION_WEIGHT_MEDIUM: int = 3
+    VIOLATION_WEIGHT_HIGH: int = 7
+
     # Configuration for loading environment file
     model_config = SettingsConfigDict(
         env_file=".env",

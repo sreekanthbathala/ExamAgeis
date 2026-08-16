@@ -105,6 +105,10 @@ async function initDashboard() {
                         <div id="stat-total" class="value" style="color: #2196f3;">0</div>
                         <div class="label">Total Violations</div>
                     </div>
+                    <div class="stat-card">
+                        <div id="stat-integrity" class="value" style="color: #17b978;">--</div>
+                        <div class="label">Integrity Score</div>
+                    </div>
                 </div>
                 
                 <!-- Detailed Timeline -->
@@ -197,7 +201,7 @@ async function inspectSession(sessionId, studentName, rollNumber, examId) {
     const token = localStorage.getItem("admin_token");
     
     // Update Title Info
-    document.getElementById("active-session-title").innerText = `Violation Log: ${studentName}`;
+    document.getElementById("active-session-title").innerHTML = `Violation Log: ${studentName} <span id="title-integrity-badge" class="severity-tag" style="font-size: 14px; padding: 4px 8px; border-radius: 4px; display: none;">Integrity: --</span>`;
     document.getElementById("student-meta-desc").innerText = `Roll Number: ${rollNumber} | Exam ID: ${examId} | Session ID: ${sessionId}`;
     
     // Show Export Button
@@ -234,6 +238,48 @@ async function inspectSession(sessionId, studentName, rollNumber, examId) {
         document.getElementById("stat-medium").innerText = mediumCount;
         document.getElementById("stat-total").innerText = logs.length;
 
+        // Fetch and Render Integrity Score
+        let score = 100;
+        try {
+            const scoreResponse = await fetch(`/api/report/integrity-score/${sessionId}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (scoreResponse.ok) {
+                const scoreData = await scoreResponse.json();
+                score = scoreData.score;
+            }
+        } catch (err) {
+            console.error("Error fetching integrity score:", err);
+        }
+
+        const integrityEl = document.getElementById("stat-integrity");
+        if (integrityEl) {
+            integrityEl.innerText = score;
+            if (score > 80) {
+                integrityEl.style.color = "#17b978"; // green
+            } else if (score >= 50) {
+                integrityEl.style.color = "#ff9f43"; // yellow
+            } else {
+                integrityEl.style.color = "#ff4d6d"; // red
+            }
+        }
+
+        const badgeEl = document.getElementById("title-integrity-badge");
+        if (badgeEl) {
+            badgeEl.innerText = `Integrity: ${score}%`;
+            badgeEl.style.display = "inline-block";
+            if (score > 80) {
+                badgeEl.style.backgroundColor = "#e8f7f0";
+                badgeEl.style.color = "#17b978";
+            } else if (score >= 50) {
+                badgeEl.style.backgroundColor = "#fff0e6";
+                badgeEl.style.color = "#ff9f43";
+            } else {
+                badgeEl.style.backgroundColor = "#ffe5ec";
+                badgeEl.style.color = "#ff4d6d";
+            }
+        }
+
         // Render Timeline
         if (logs.length === 0) {
             timelineContainer.innerHTML = `
@@ -253,11 +299,23 @@ async function inspectSession(sessionId, studentName, rollNumber, examId) {
             // Format nice label
             const displayLabel = log.violation_type.replace("_", " ").toUpperCase();
             
+            let screenshotHTML = "";
+            if (log.screenshot_path) {
+                screenshotHTML = `
+                    <div style="margin-top: 10px;">
+                        <a href="${log.screenshot_path}" target="_blank">
+                            <img src="${log.screenshot_path}" alt="Violation Screenshot" style="max-width: 260px; border-radius: 6px; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: zoom-in; transition: transform 0.2s;">
+                        </a>
+                    </div>
+                `;
+            }
+
             item.innerHTML = `
                 <div class="timeline-time">${timeStr} <span class="severity-tag severity-${log.severity}">${log.severity}</span></div>
                 <div class="timeline-content">
                     <div class="timeline-title">${displayLabel}</div>
                     <div style="font-size: 13px; color:#555;">${log.details.message || 'Details not recorded.'}</div>
+                    ${screenshotHTML}
                 </div>
             `;
             

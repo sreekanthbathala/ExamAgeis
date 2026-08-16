@@ -1,6 +1,9 @@
 import os
-from sqlmodel import SQLModel, create_engine, Session
+from sqlmodel import SQLModel, create_engine, Session, text
 from app.config import settings
+from app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # Parse the database URL to get file path if it is sqlite
 db_url = settings.DATABASE_URL
@@ -22,9 +25,23 @@ def init_db():
     
     SQLModel.metadata.create_all(engine)
     
+    # Run automatic table migration for screenshot_path column
+    with Session(engine) as session:
+        try:
+            # Check if column exists
+            session.execute(text("SELECT screenshot_path FROM violationlog LIMIT 1"))
+        except Exception:
+            # Column is missing, add it
+            try:
+                logger.info("Migrating database: adding 'screenshot_path' column to violationlog table.")
+                session.rollback()
+                session.execute(text("ALTER TABLE violationlog ADD COLUMN screenshot_path VARCHAR"))
+                session.commit()
+                logger.info("Database migration successful.")
+            except Exception as migrate_err:
+                logger.error(f"Failed to migrate database columns: {migrate_err}")
+
     # Initialize default admin if not present
-    # We will do this inside routes_auth or in a startup event.
-    # Let's seed an admin here or in main.py
     seed_default_admin()
 
 def get_db():

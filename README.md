@@ -21,9 +21,17 @@ ExamAegis is a complete, real-time AI-based online exam proctoring system built 
 4. **Proctor Violation Engine:**
    - Applies configurable temporal thresholds (e.g., no face for > 5s, gaze away for > 3s) and logs violations with low/medium/high severity ratings.
    - Live socket feedback displays warnings back to the candidate (e.g., "Please face the camera").
-5. **Admin Control Panel:**
+5. **Tab-Switch & Window-Focus Detection:**
+   - Client-side monitoring for document visibility and window focus loss. Logs medium-severity violations and flashes alerts on tab deviations.
+6. **Fullscreen Enforcement:**
+   - Forces fullscreen upon starting the exam, tracks when the student exits, and overlays a mandatory prompt to re-enter fullscreen.
+7. **Integrity Scoring System:**
+   - Dynamically calculates a weighted proctor score (0 to 100) on each session based on the severity of logged incidents, displayed with colored threshold badges on the dashboard.
+8. **Integrity Screenshots:**
+   - Captures real-time webcam frame snapshots specifically on high-severity occurrences (`no_face`, `multiple_faces`, `phone_detected`), presenting photo proofs on the instructor's timeline view.
+9. **Admin Control Panel:**
    - Browse proctored exam sessions.
-   - Review interactive visual violation timelines with timestamps.
+   - Review interactive visual violation timelines with timestamps, integrity scores, and screenshots.
    - Export structured logs as JSON reports.
 
 ---

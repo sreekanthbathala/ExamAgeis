@@ -27,7 +27,7 @@ class FaceDetector:
         self.dlib_predictor = None
         
         # Initialize primary detector (Mediapipe Face Mesh)
-        if MP_AVAILABLE:
+        if MP_AVAILABLE and hasattr(mp, 'solutions'):
             try:
                 self.mp_face_mesh = mp.solutions.face_mesh.FaceMesh(
                     static_image_mode=False,
@@ -40,6 +40,8 @@ class FaceDetector:
             except Exception as e:
                 logger.error(f"Error initializing Mediapipe Face Mesh: {e}")
                 self.mp_face_mesh = None
+        else:
+            logger.info("Mediapipe solutions module is not available on this platform/Python version. Will use fallbacks.")
 
         # Initialize fallback detector (Dlib)
         if not self.mp_face_mesh and DLIB_AVAILABLE:

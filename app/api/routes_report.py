@@ -8,6 +8,7 @@ from app.models.student import Student
 from app.models.violation_log import ViolationLog
 from app.api.routes_auth import get_current_user
 from app.utils.logger import get_logger
+from app.core.integrity_score import calculate_integrity_score
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/report", tags=["Reporting & Logs"])
@@ -84,7 +85,8 @@ def get_session_violations(
                 "violation_type": v.violation_type,
                 "severity": v.severity,
                 "timestamp": v.timestamp,
-                "details": json.loads(v.details) if v.details else {}
+                "details": json.loads(v.details) if v.details else {},
+                "screenshot_path": v.screenshot_path
             })
 
         return formatted_violations
@@ -124,6 +126,31 @@ def get_session_summary(
         return {c[0]: c[1] for c in counts}
     except Exception as e:
         logger.error(f"Error querying summary: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.get("/integrity-score/{session_id}")
+def get_session_integrity_score(
+    session_id: int,
+    db: Session = Depends(get_db),
+    current_user: Student = Depends(get_current_user)
+):
+    """
+    Retrieves the integrity score (0-100) and violation statistics for a session.
+    """
+    session_rec = db.get(ExamSession, session_id)
+    if not session_rec:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    if session_rec.student_id != current_user.id and current_user.roll_number != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied."
+        )
+
+    try:
+        return calculate_integrity_score(session_id, db)
+    except Exception as e:
+        logger.error(f"Error calculating integrity score: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/export/{session_id}")
@@ -167,7 +194,8 @@ def export_violation_log(
                     "type": v.violation_type,
                     "severity": v.severity,
                     "timestamp": v.timestamp.isoformat(),
-                    "details": json.loads(v.details) if v.details else {}
+                    "details": json.loads(v.details) if v.details else {},
+                    "screenshot_path": v.screenshot_path
                 }
                 for v in violations
             ]

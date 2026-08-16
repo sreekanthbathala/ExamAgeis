@@ -50,6 +50,8 @@
     <!-- Project JS dependencies -->
     <script src="js/webcam.js"></script>
     <script src="js/socket_client.js"></script>
+    <script src="js/focus_monitor.js"></script>
+    <script src="js/fullscreen_monitor.js"></script>
     <script>
         document.getElementById("student-login-form").addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -191,10 +193,22 @@
             );
             client.connect();
 
+            // Initialize focus and fullscreen monitors
+            const focusMonitor = new FocusMonitor(client);
+            focusMonitor.start();
+
+            const fullscreenMonitor = new FullscreenMonitor(client);
+            fullscreenMonitor.start();
+            await fullscreenMonitor.requestFullscreen();
+
             // Handle "End Exam" Click
             document.getElementById("end-exam-btn").addEventListener("click", async () => {
                 const conf = confirm("Are you sure you want to end the exam and submit?");
                 if (!conf) return;
+
+                // Stop monitors
+                focusMonitor.stop();
+                fullscreenMonitor.stop();
 
                 // Stop tracking streams
                 client.disconnect();

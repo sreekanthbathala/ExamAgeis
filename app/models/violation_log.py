@@ -9,3 +9,4 @@ class ViolationLog(SQLModel, table=True):
     severity: str        # low, medium, high
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     details: str        # JSON details as a string for extensibility
+    screenshot_path: Optional[str] = Field(default=None, nullable=True)

@@ -15,7 +15,7 @@ from app.core.head_pose import estimate_head_pose
 from app.core.mouth_tracking import calculate_mar
 from app.core.object_detection import ObjectDetector
 from app.core.audio_detection import analyze_audio_chunk
-from app.core.violation_engine import process_violations
+from app.core.violation_engine import process_violations, process_client_event
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/monitor", tags=["Real-time Proctoring"])
@@ -72,7 +72,28 @@ async def monitor_websocket(
                     payload = json.loads(message["text"])
                     msg_type = payload.get("type")
                     
-                    if msg_type == "frame":
+                    if msg_type == "client_event":
+                        event_name = payload.get("event")
+                        if event_name in ["tab_switch", "fullscreen_exit"]:
+                            alerts = process_client_event(db, session_id, event_name)
+                            if alerts:
+                                await websocket.send_json({
+                                    "type": "proctor_result",
+                                    "alerts": alerts,
+                                    "metrics": {
+                                        "face_count": 1,
+                                        "gaze_ratio": 0.5,
+                                        "ear": 0.3,
+                                        "head_pose": {
+                                            "yaw": 0.0,
+                                            "pitch": 0.0
+                                        },
+                                        "mar": 0.0,
+                                        "objects_detected": []
+                                    }
+                                })
+                                
+                    elif msg_type == "frame":
                         b64_data = payload.get("data")
                         if not b64_data:
                             continue
@@ -134,7 +155,8 @@ async def monitor_websocket(
                             mar=mar,
                             detections=detections,
                             audio_voice_detected=audio_voice_detected,
-                            audio_rms=audio_rms
+                            audio_rms=audio_rms,
+                            frame=frame
                         )
                         
                         # Reset audio indicators for the next time-frame window

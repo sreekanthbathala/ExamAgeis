@@ -37,6 +37,18 @@ app.include_router(routes_exam.router, prefix="/api")
 app.include_router(routes_monitor.router, prefix="/api")
 app.include_router(routes_report.router, prefix="/api")
 
+# Simple health check endpoint (if needed)
+@app.get("/api/health")
+def health_check():
+    return {"status": "healthy", "service": "ExamAegis Backend"}
+
+# Verify screenshots directory exists
+screenshots_dir = os.path.join("database", "screenshots")
+os.makedirs(screenshots_dir, exist_ok=True)
+
+# Mount screenshots directory
+app.mount("/screenshots", StaticFiles(directory=screenshots_dir), name="screenshots")
+
 # Verify frontend directory exists before mounting
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend")
 if not os.path.exists(frontend_dir):
@@ -46,8 +58,3 @@ if not os.path.exists(frontend_dir):
 
 # Mount frontend directory to serve plain HTML/CSS/JS web pages
 app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="frontend")
-
-# Simple health check endpoint (if needed)
-@app.get("/api/health")
-def health_check():
-    return {"status": "healthy", "service": "ExamAegis Backend"}

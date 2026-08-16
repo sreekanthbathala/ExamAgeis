@@ -1,10 +1,12 @@
 import time
 import json
+import numpy as np
 from datetime import datetime
 from sqlmodel import Session
 from app.models.violation_log import ViolationLog
 from app.config import settings
 from app.utils.logger import get_logger
+from app.utils.frame_utils import save_violation_screenshot
 
 logger = get_logger(__name__)
 
@@ -37,7 +39,8 @@ def process_violations(
     mar: float,
     detections: list[dict],
     audio_voice_detected: bool,
-    audio_rms: float
+    audio_rms: float,
+    frame: np.ndarray = None
 ) -> list[dict]:
     """
     Applies configurable thresholds and temporal aggregation to determine violations.
@@ -57,12 +60,18 @@ def process_violations(
     def record_violation(v_type: str, severity: str, details_dict: dict):
         if can_log_violation(v_type):
             try:
+                # Capture screenshot for frame-based high-severity incidents
+                screenshot_path = None
+                if severity == "high" and frame is not None:
+                    screenshot_path = save_violation_screenshot(frame, exam_session_id, v_type)
+
                 log = ViolationLog(
                     exam_session_id=exam_session_id,
                     violation_type=v_type,
                     severity=severity,
                     timestamp=datetime.utcnow(),
-                    details=json.dumps(details_dict)
+                    details=json.dumps(details_dict),
+                    screenshot_path=screenshot_path
                 )
                 db.add(log)
                 db.commit()
@@ -204,3 +213,51 @@ def clean_session_state(session_id: int):
     if session_id in session_states:
         del session_states[session_id]
         logger.info(f"Cleaned proctoring state for session {session_id}")
+
+def process_client_event(db: Session, exam_session_id: int, event_type: str) -> list[dict]:
+    """
+    Handles client-side window focus and fullscreen events.
+    Logs them as medium severity violations with a cooldown.
+    """
+    now = time.time()
+    state = get_or_create_state(exam_session_id)
+    alerts = []
+    
+    # Cooldown check
+    def can_log_violation(v_type_str: str, cooldown: float = 10.0) -> bool:
+        last_logged = state["last_logged"].get(v_type_str, 0)
+        return (now - last_logged) > cooldown
+
+    severity = "medium"
+    
+    if can_log_violation(event_type):
+        try:
+            if event_type == "tab_switch":
+                message = "Tab switched or window lost focus!"
+            elif event_type == "fullscreen_exit":
+                message = "Candidate exited fullscreen mode!"
+            else:
+                message = f"Client event triggered: {event_type}"
+
+            log = ViolationLog(
+                exam_session_id=exam_session_id,
+                violation_type=event_type,
+                severity=severity,
+                timestamp=datetime.utcnow(),
+                details=json.dumps({"message": message}),
+                screenshot_path=None  # No frame available for client events
+            )
+            db.add(log)
+            db.commit()
+            state["last_logged"][event_type] = now
+            logger.info(f"[Session {exam_session_id}] Logged client event violation: {event_type}")
+
+            alerts.append({
+                "violation_type": event_type,
+                "severity": severity,
+                "message": message
+            })
+        except Exception as e:
+            logger.error(f"Error logging client event: {e}")
+            
+    return alerts
