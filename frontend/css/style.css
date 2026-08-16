@@ -1,0 +1,321 @@
+/* Reset & Base Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fb;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Authentication Page Styles */
+.login-card {
+    background: white;
+    max-width: 450px;
+    margin: 80px auto;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.login-card h2 {
+    margin-bottom: 20px;
+    color: #1e3d59;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 15px;
+}
+
+.btn {
+    display: inline-block;
+    width: 100%;
+    background-color: #17b978;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background 0.2s;
+}
+
+.btn:hover {
+    background-color: #119960;
+}
+
+.btn-secondary {
+    background-color: #1e3d59;
+}
+
+.btn-secondary:hover {
+    background-color: #122538;
+}
+
+/* Student Exam Room Layout */
+.exam-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.exam-panel {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.proctor-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.webcam-container {
+    position: relative;
+    background: #000;
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#webcam-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#webcam-canvas {
+    display: none; /* hidden canvas for frame extraction */
+}
+
+/* Proctoring Warnings / Banner */
+.alert-banner {
+    background-color: #ffdeeb;
+    border-left: 5px solid #ff4d6d;
+    color: #8c0f26;
+    padding: 15px;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: none; /* hidden by default */
+    animation: flash 1s infinite alternate;
+}
+
+@keyframes flash {
+    from { opacity: 1; }
+    to { opacity: 0.7; }
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-connected {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-disconnected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Admin Dashboard Layout */
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.sidebar {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.sidebar h3 {
+    margin-bottom: 15px;
+    color: #1e3d59;
+    border-bottom: 2px solid #f0f2f5;
+    padding-bottom: 8px;
+}
+
+.session-item {
+    padding: 12px;
+    border-radius: 6px;
+    background: #f8f9fa;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border-left: 4px solid transparent;
+    transition: all 0.2s;
+}
+
+.session-item:hover, .session-item.active {
+    background: #e3f2fd;
+    border-left-color: #2196f3;
+}
+
+.session-item .name {
+    font-weight: 600;
+    color: #333;
+}
+
+.session-item .meta {
+    font-size: 12px;
+    color: #666;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.stat-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ff4d6d;
+}
+
+.stat-card .label {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Violation Timeline */
+.timeline-card {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 20px;
+    border-left: 2px solid #ddd;
+    margin-top: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -27px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ccc;
+    border: 2px solid white;
+}
+
+.timeline-item.severity-high::before {
+    background: #ff4d6d;
+}
+
+.timeline-item.severity-medium::before {
+    background: #ff9f43;
+}
+
+.timeline-item.severity-low::before {
+    background: #2196f3;
+}
+
+.timeline-time {
+    font-size: 12px;
+    color: #888;
+    font-weight: 600;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 4px;
+    margin-top: 4px;
+}
+
+.timeline-title {
+    font-weight: 600;
+}
+
+.severity-tag {
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.severity-high { background: #ffe5ec; color: #ff4d6d; }
+.severity-medium { background: #fff0e6; color: #ff9f43; }
+.severity-low { background: #e3f2fd; color: #2196f3; }
+
+/* Utilities */
+.text-center { text-align: center; }
+.mt-20 { margin-top: 20px; }
+.flex-space { display: flex; justify-content: space-between; align-items: center; }
+.badge { background: #2196f3; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
